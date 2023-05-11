@@ -4,7 +4,7 @@ import unittest
 import parrot
 
 class testcreate_behavior_id(unittest.TestCase):
-  def test_simple(self):
+  def test_simple_command(self):
     args=["ls"]
     id = parrot.create_behavior_id(args)
     self.assertEqual(id, args[0])

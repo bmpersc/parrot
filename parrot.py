@@ -28,25 +28,25 @@ import json
 
 class behavior:
   def __init__(self):
-    id = "Unidentified"
-    command = ""
-    args = []
-    stdout = "Default stdout."
-    stdin  = "Default stdin."
-    return_code = 0
+    self.command = ""
+    self.args = []
+    self.stdout_output = "Default stdout."
+    self.stderr_output = "Default stderr."
+    self.return_code = 0
+    self.id = "Unidentified"
 
-  def __init__(self, _command, _args, _stdout, _stdin="", _return_code=0):
-    command = _command
-    args = _args
-    stdout = _stdout
-    stdin  = _stdout
-    return_code = _return_code
-    id = create_behavior_id([command] + args)
+  def __init__(self, _command, _args, _stdout, _stderr="", _return_code=0):
+    self.command = _command
+    self.args = _args
+    self.stdout_output = _stdout
+    self.stderr_output = _stderr
+    self.return_code = _return_code
+    self.id = create_behavior_id([self.command] + self.args)
 
   def execute(self, stdout_fp=sys.stdout, stderr_fp=sys.stderr, exit_call=sys.exit):
-    stdout_fp.write(stdout)
-    stderr_fp.write(stderr)
-    exit_call(return_code)
+    stdout_fp.write(self.stdout_output)
+    stderr_fp.write(self.stderr_output)
+    exit_call(self.return_code)
 
 def create_behavior_id(argv):
   return " ".join(argv)
