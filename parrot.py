@@ -24,7 +24,11 @@
 """
 
 import sys
+import os
 import json
+
+env_var_behavior_filename = "PARROT_BEHAVIORS_FILE"
+local_behavior_filename = "parrot_behaviors"
 
 class behavior:
   def __init__(self):
@@ -74,6 +78,18 @@ def read_behaviors(behavior_fp):
     behavior_dict[identity] = behavior
 
   return behavior_dict
+
+def get_behavior_filename():
+  behavior_file = None
+  if env_var_behavior_filename in os.environ:
+    behavior_filename = os.environ[env_var_behavior_filename]
+  else:
+    behavior_filename = os.path.join(os.path.dirname(__file__), local_behavior_filename)
+
+  if not os.path.exists(behavior_filename):
+    raise ParrotMissingBehaviorFile(f"{behavior_filename} does not exist.")
+
+  return behavior_filename
 
 def create_behavior_id(argv):
   return " ".join(argv)
