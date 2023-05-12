@@ -16,11 +16,11 @@
   will use the file given. If the environment variable is not set then
   parrot will look in the directory where parrot is located for a file
   named: "parrot_behaviors" If either file doesn't exist parrot will 
-  throw a "MissingBehaviorFile" exception. Parrot will not fall back to
-  the parrot_behaviors file if PARROT_BEHAVIORS_FILE is not set. This is
-  because parrot cannot properly report any issues since stdout and stderr
-  are used by behaviors. Any error reporting done there could be mistaken
-  as output for the expected behavior.
+  throw a "ParrotMissingBehaviorFile" exception. Parrot will not fall
+  back to the parrot_behaviors file if PARROT_BEHAVIORS_FILE is not set.
+  This is because parrot cannot properly report any issues since stdout
+  and stderr are used by behaviors. Any error reporting done there could
+  be mistaken as output for the expected behavior.
 """
 
 import sys
@@ -47,6 +47,33 @@ class behavior:
     stdout_fp.write(self.stdout_output)
     stderr_fp.write(self.stderr_output)
     exit_call(self.return_code)
+
+class ParrotException(Exception):
+  pass
+
+class ParrotMissingBehaviorFile(ParrotException):
+  pass
+
+class ParrotMalformedBehaviorFile(ParrotException):
+  pass
+
+def object_to_behavior_hook(dct):
+  try:
+    new_behavior = behavior(dct["command"], dct["args"], dct["stdout"], dct["stderr"], dct["return_code"])
+  except KeyError:
+    raise ParrotMalformedBehaviorFile("Malformed behavior dictionary.")
+  return new_behavior
+
+def read_behaviors(behavior_fp):
+  behavior_list = json.loads(behavior_fp.read(), object_hook=object_to_behavior_hook)
+
+  behavior_dict = {}
+  for behavior in behavior_list:
+    command_line = [behavior.command] + behavior.args
+    identity = create_behavior_id(command_line)
+    behavior_dict[identity] = behavior
+
+  return behavior_dict
 
 def create_behavior_id(argv):
   return " ".join(argv)
