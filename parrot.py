@@ -3,7 +3,7 @@
 """
   parrot is a tool for faking command line tools for testing scripts
   that depend on command line tools to do their work, but don't want
-  to, or can't rely on proper behavior during testing.
+  to execute, or can't rely on proper behavior during testing.
 
   This is accomplished by placing parrot, renamed or symlinked to 
   the command you want to fake, ahead of the real command in the PATH.
@@ -61,6 +61,9 @@ class ParrotMissingBehaviorFile(ParrotException):
 class ParrotMalformedBehaviorFile(ParrotException):
   pass
 
+class ParrotUnknownBehavior(ParrotException):
+  pass
+
 def object_to_behavior_hook(dct):
   try:
     new_behavior = behavior(dct["command"], dct["args"], dct["stdout"], dct["stderr"], dct["return_code"])
@@ -69,7 +72,10 @@ def object_to_behavior_hook(dct):
   return new_behavior
 
 def read_behaviors(behavior_fp):
-  behavior_list = json.loads(behavior_fp.read(), object_hook=object_to_behavior_hook)
+  try:
+    behavior_list = json.loads(behavior_fp.read(), object_hook=object_to_behavior_hook)
+  except:
+    raise ParrotMalformedBehaviorFile("Failed to read behaviors file")
 
   behavior_dict = {}
   for behavior in behavior_list:
@@ -92,7 +98,10 @@ def get_behavior_filename():
   return behavior_filename
 
 def create_behavior_id(argv):
-  return " ".join(argv)
+  command = argv[0]
+  if command.startswith("./"):
+    command = command[2:]
+  return " ".join([command] + argv[1:])
 
 def parrot_main():
   import argparse
@@ -105,7 +114,15 @@ def parrot_main():
 
 def behavior_main():
   id = create_behavior_id(sys.argv)
-  print(f"\"{id}\"")
+  behavior_filename = get_behavior_filename()
+  behavior_file = open(behavior_filename, "r")
+  behaviors = read_behaviors(behavior_file)
+
+  if id not in behaviors:
+    raise ParrotUnknownBehavior("No known behavior \"" + id + "\"")
+
+  behavior = behaviors[id]
+  behavior.execute()
 
 if __name__ == "__main__":
   if sys.argv[0].endswith("parrot.py"):

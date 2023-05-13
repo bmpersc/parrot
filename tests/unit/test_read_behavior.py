@@ -121,6 +121,9 @@ class testread_behavior(unittest.TestCase):
     with self.assertRaises(parrot.ParrotMalformedBehaviorFile):
       behaviors = parrot.read_behaviors(self.json_fp)
 
+  def test_empty_json(self):
+    with self.assertRaises(parrot.ParrotMalformedBehaviorFile):
+      behaviors = parrot.read_behaviors(self.json_fp)
 
 if __name__ == "__main__":
   unitest.main();
