@@ -4,5 +4,29 @@
    "stdout": "",
    "stderr": "ls: cannot access 'fred.cc': No such file or directory\n",
    "return_code": 2
+  },
+  {"command": "ls",
+   "args": [],
+   "stdout": "ls  parrot_behaviors.1  run_tests.sh\n",
+   "stderr": "",
+   "return_code": 0
+  },
+  {"command": "grep",
+   "args": ["-ni", "hi", "test"],
+   "stdout": "",
+   "stderr": "grep: test: No such file or directory\n",
+   "return_code": 2
+  },
+  {"command": "grep",
+   "args": ["-ni", "hi", "test*"],
+   "stdout": "test:1:hi\n",
+   "stderr": "grep: test2: No such file or directory\n",
+   "return_code": 2
+  },
+  {"command": "grep",
+   "args": ["-ni", "return", "parrot_behaviors"],
+   "stdout": "6:   \"return_code\": 2\n12:   \"return_code\": 0\n18:   \"return_code\": 2\n24:   \"return_code\": 2\n",
+   "stderr": "",
+   "return_code": 0
   }
 ]

@@ -62,7 +62,7 @@ class testexecute_behavior(unittest.TestCase):
     grep_stdout = """1:hi there!
 2:hello joe."""
     grep_stderr = ""
-    ls_behavior = parrot.behavior("grep", ["-niRI", '"hi\|hello"'], grep_stdout, grep_stderr, 0)
+    ls_behavior = parrot.behavior("grep", ["-niRI", '"hi|hello"'], grep_stdout, grep_stderr, 0)
     
     ls_behavior.execute(stdout_fp=self.str_stdout,
                         stderr_fp=self.str_stderr,

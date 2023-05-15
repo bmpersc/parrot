@@ -4,6 +4,7 @@
 #parrot definitions.
 system_grep=$(which grep)
 system_rm=$(which rm)
+system_cp=$(which cp)
 system_ln=$(which ln)
 system_which=$(which which)
 
@@ -12,6 +13,12 @@ failure_count=0
 expected_stdout=""
 expected_stderr=""
 expected_return_code=0
+
+function clean_up_old_files(){
+  $system_rm -f stdout.test_*
+  $system_rm -f stderr.test_*
+  $system_rm -f parrot_behaviors
+}
 
 function setup_behaviors_file(){
   version=$1
@@ -28,9 +35,16 @@ function setup(){
 }
 
 function tear_down(){
+  pass_fail=$1
   expected_stdout=""
   expected_stderr=""
   expected_return_code=0
+
+  if [[ $pass_fail != 0 ]]; then
+    $system_cp stdout stdout.test_$test_num
+    $system_cp stderr stderr.test_$test_num
+  fi
+
   $system_rm -f stdout
   $system_rm -f stderr
 }
@@ -73,12 +87,12 @@ function run_test(){
 
   if [[ $stdout_return == 0 && $stderr_return == 0 && $return_val == $expected_return_code ]]; then
     pass_fail=0
-    echo "PASS: $test_num"
+    echo "PASS: $test_num ($command $args)"
   else
     echo "FAIL: $test_num ($command $args)[$stdout_return, $stderr_return, $return_val]"
   fi
 
-  tear_down
+  tear_down $pass_fail
 
   let failure_count=$failure_count+$pass_fail
   return $pass_fail
@@ -88,6 +102,7 @@ function run_test(){
 old_path=$PATH
 export PATH=.
 
+clean_up_old_files
 setup_behaviors_file 1
 
 ####################################################################
@@ -97,6 +112,38 @@ expected_return_code=2
 run_test ls fred.cc
 ####################################################################
 
+####################################################################
+expected_stdout="ls  parrot_behaviors.1  run_tests.sh"
+expected_stderr=""
+expected_return_code=0
+run_test ls
+####################################################################
+
+####################################################################
+expected_stdout=""
+expected_stderr="grep: test: No such file or directory"
+expected_return_code=2
+run_test grep -ni hi test
+####################################################################
+
+####################################################################
+expected_stdout="^12:   \"return_code\": 0$"
+expected_stderr=""
+expected_return_code=0
+run_test grep -ni return parrot_behaviors
+
+expected_stdout="^24:   \"return_code\": 2$"
+expected_stderr=""
+expected_return_code=0
+run_test grep -ni return parrot_behaviors
+####################################################################
+
+####################################################################
+expected_stdout="test:1:hi"
+expected_stderr="grep: test2: No such file or directory"
+expected_return_code=2
+run_test grep -ni hi "test*"
+####################################################################
 
 tear_down_behaviors_file
 
